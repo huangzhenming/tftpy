@@ -83,7 +83,7 @@ def tftp_downloader(name, rq, host, port, blksize, tsize, localip, timeout ):
 
     while True:
         name = get_next_file()
-        output_name = name
+        output_name = "%s_dw" %(name)
 
         tftp_options = {}
         tftp_options['timeout'] = int(timeout)
