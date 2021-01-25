@@ -70,7 +70,7 @@ def get_next_file():
     idx = randint(0, len(download_file_names)-1)
     return download_file_names[idx]
 
-def tftp_downloader(name, rq, host, port, blksize, tsize,localip ):
+def tftp_downloader(name, rq, host, port, blksize, tsize, localip, timeout ):
     """
     post get_open_lock by process
     :param name:
@@ -86,6 +86,7 @@ def tftp_downloader(name, rq, host, port, blksize, tsize,localip ):
         output_name = name
 
         tftp_options = {}
+        tftp_options['timeout'] = int(timeout)
         if blksize:
             tftp_options['blksize'] = int(blksize)
         if tsize:
@@ -132,7 +133,7 @@ def statics(name, rq):
     while True:
         time.sleep(1)
 
-def download_stress(max_tasks, host, port, blksize, tsize, localip):
+def download_stress(max_tasks, host, port, blksize, tsize, localip,timeout):
     result_queue = Queue()
     processes = []
 
@@ -140,7 +141,7 @@ def download_stress(max_tasks, host, port, blksize, tsize, localip):
     sp = Process(target=statics, args=("sp", result_queue))
     #创建下载进程
     for i in range(max_tasks):
-        p = Process(target=tftp_downloader, args=("dp", result_queue, host, port, blksize, tsize,localip))
+        p = Process(target=tftp_downloader, args=("dp", result_queue, host, port, blksize, tsize,localip,timeout))
         processes.append(p)
 
     sp.start()
@@ -177,8 +178,13 @@ def main():
     parser.add_option('-d',
                       '--max_download_speed',
                       type='int',
-                      help='并发下载进程数量',
+                      help='并发速度限制',
                       default=1)
+    parser.add_option('-T',
+                      '--timeout',
+                      type='int',
+                      help='超时设置',
+                      default=7)
     parser.add_option('-t',
                       '--tsize',
                       action='store_true',
@@ -192,7 +198,7 @@ def main():
                       help='local IP for client to bind to (ie. interface)')
     options, args = parser.parse_args()
 
-    download_stress(options.max_tasks, options.host, options.port, options.blksize, options.tsize, options.localip)
+    download_stress(options.max_tasks, options.host, options.port, options.blksize, options.tsize, options.localip, options.timeout)
 
 
 if __name__ == '__main__':
